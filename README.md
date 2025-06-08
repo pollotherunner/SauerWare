@@ -21,8 +21,9 @@ An internal cheat for **Cube 2: Sauerbraten**, focused on legit hacking features
 
 ## Screenshots
 
-Below are screenshots of the in-game menu:
+Below are screenshots of the in-game menu and esp:
 
+![ESP](images/esp_in_game.png)  
 ![AimAssist Page](images/aim.png)  
 ![ESP Page](images/esp.png)  
 ![Misc Page](images/misc.png)
