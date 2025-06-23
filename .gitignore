@@ -1,0 +1,25 @@
+# Build results
+*.obj
+*.exe
+*.pdb
+*.dll
+*.lib
+*.ipch
+*.pch
+*.log
+
+# VS folders
+.vs/
+Debug/
+Release/
+x64/
+*.VC.db
+*.VC.VC.opendb
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sdf
+*.opensdf
+*.cache
