@@ -101,6 +101,9 @@
     <ClInclude Include="Features\AimAssist.hpp">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
+    <ClInclude Include="Config.hpp">
+      <Filter>Arquivos de Cabeçalho</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="Dependencies\MinHook\bin\libMinHook.x64.lib" />

@@ -19,16 +19,10 @@ namespace Features {
             ImVec2 ScreenCenter = { ImGui::GetIO().DisplaySize.x / 2, ImGui::GetIO().DisplaySize.y / 2 };
 
             int ScreenWidght = Core::Funcs::Read<int>((uintptr_t)Core::ProcessInformations::GameModule + Core::Offsets::Game::ScreenW);
-            int ScreenHeigh = Core::Funcs::Read<int>((uintptr_t)Core::ProcessInformations::GameModule + Core::Offsets::Game::ScreenH);
-
-            for (const auto& Entity : Core::EntityNamespace::EntityMap)
+            int ScreenHeigh = Core::Funcs::Read<int>((uintptr_t)Core::ProcessInformations::GameModule + Core::Offsets::Game::ScreenH);            for (const auto& Entity : Core::EntityNamespace::EntityMap)
             {
-                if (Entity.second.Flag == 1 && Core::Config::ESP::IgnoreDead)continue;
-
-                if ((Core::LocalPlayer::Team == Entity.second.Team) && Core::Config::ESP::IgnoreTeam) continue;
-
-               // std::cout << "LOCALPLAYER: " << Core::LocalPlayer::Team << " ENEMY: " << Entity.second.Team << " IS TEAMATE: " << (Core::LocalPlayer::Team == Entity.second.Team) << '\n';
-
+                if (Entity.second.Flag == 1 && Core::Config::ESP::IgnoreDead) continue;               
+                if ((Core::LocalPlayer::Team == Entity.second.Team) && Core::Config::ESP::IgnoreTeam) continue;                
 
                 if (Core::Config::ESP::EnableESP) {
                     

@@ -117,10 +117,13 @@ namespace Core {
 			ImColor ColorHealthBar = ImColor(0, 255, 0, 255);
 			ImColor ColorText = ImColor(255, 255, 255, 255);
 		}
-
 		namespace Misc {
 			bool Thirdperson = false;
 			int CameraFov = 100;
+		}
+
+		namespace Debug {
+			bool EnableESPDebugLogging = false;
 		}
 	
 	}

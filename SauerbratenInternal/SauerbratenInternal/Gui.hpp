@@ -4,6 +4,12 @@
 #include <Dependencies/ImGui/imgui_impl_win32.h>
 #include <Constants.hpp>
 #include <Features/ESP.hpp>
+#include <Config.hpp>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <Windows.h>
+
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -24,7 +30,6 @@ LRESULT CALLBACK windowProc_hook(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 bool Initialized = false;
 
 namespace Core {
-
 	namespace Gui {
 
 		void InitGui() {
@@ -61,13 +66,21 @@ namespace Core {
 		"Alt", "Shift", "Ctrl",
 		"Caps Lock", "E", "Q", "R", "X", "Z", "V", "F"
 		};
-
 		static const int KeyValues[] = {
 			0x00, 0x01, 0x02, 0x04, 0x05, 0x06,
 			0x12, 0x10, 0x11,
 			0x14, 0x45, 0x51, 0x52,
 			0x58, 0x5A, 0x56, 0x46
 		};
+
+		int FindKeyIndex(int keyValue) {
+			for (int i = 0; i < IM_ARRAYSIZE(KeyValues); i++) {
+				if (KeyValues[i] == keyValue) {
+					return i;
+				}
+			}
+			return 0; 
+		}
 
 		void RenderGui() {
 
@@ -99,6 +112,11 @@ namespace Core {
 				{
 					CurrentTab = 2;
 				}
+				ImGui::SameLine();
+				if (ImGui::Button("Config"))
+				{
+					CurrentTab = 3;
+				}
 
 				ImGui::Separator();
 
@@ -111,9 +129,10 @@ namespace Core {
 					ImGui::Checkbox("Enable Aimbot", &Core::Config::Aimbot::EnableAimbot);
 					ImGui::Checkbox("Enable Aimbot Visible Check", &Core::Config::Aimbot::EnableAimbotVisibleCheck);
 					ImGui::Checkbox("Enable Aimbot Show Fov", &Core::Config::Aimbot::EnableShowFov);
-					ImGui::SliderFloat("Aimbot Fov", &Core::Config::Aimbot::AimbotFov, 0, 400);
+					ImGui::SliderFloat("Aimbot Fov", &Core::Config::Aimbot::AimbotFov, 0, 400);					
 					ImGui::SliderFloat("Aimbot Smooth", &Core::Config::Aimbot::AimbotSmooth, 1, 100);
 					static int CurrentKeyAim = 0;
+					CurrentKeyAim = FindKeyIndex(Core::Config::Aimbot::AimbotKey);
 					if (ImGui::Combo("Aimbot KeyBind", &CurrentKeyAim, KeyNames, IM_ARRAYSIZE(KeyNames))) {
 						Core::Config::Aimbot::AimbotKey = KeyValues[CurrentKeyAim];
 					}
@@ -122,9 +141,10 @@ namespace Core {
 					ImGui::Text("Silent");
 					ImGui::Checkbox("Enable SilentAim", &Core::Config::SilentAim::EnableSilent);
 					ImGui::Checkbox("Enable Silent Visible Check", &Core::Config::SilentAim::EnableSilentVisibleCheck);
-					ImGui::Checkbox("Enable SilentAim Show Fov", &Core::Config::SilentAim::EnableShowSilentFov);
+					ImGui::Checkbox("Enable SilentAim Show Fov", &Core::Config::SilentAim::EnableShowSilentFov);					
 					ImGui::SliderFloat("SilentAim Fov", &Core::Config::SilentAim::SilentFov, 0, 400);
 					static int CurrentKeySilentAim = 0;
+					CurrentKeySilentAim = FindKeyIndex(Core::Config::SilentAim::SilentKey);
 					if (ImGui::Combo("SilentAim KeyBind", &CurrentKeySilentAim, KeyNames, IM_ARRAYSIZE(KeyNames))) {
 						Core::Config::SilentAim::SilentKey = KeyValues[CurrentKeySilentAim];
 					}
@@ -159,9 +179,7 @@ namespace Core {
 					ImGui::ColorEdit4("Invisible Line Color", (float*)&Core::Config::ESP::ColorLineInvisible);
 					ImGui::ColorEdit4("HealthBar Color", (float*)&Core::Config::ESP::ColorHealthBar);
 					ImGui::ColorEdit4("Text Color", (float*)&Core::Config::ESP::ColorText);
-				}
-				else if (CurrentTab == 2)
-				{
+				} else if (CurrentTab == 2) {
 					if (ImGui::Checkbox("Thirdperson", &Core::Config::Misc::Thirdperson)) {
 						if (Core::Config::Misc::Thirdperson) {
 							Funcs::Write<BYTE>((uintptr_t)Core::ProcessInformations::GameModule + Core::Offsets::Game::Thirdperson, 1);
@@ -175,10 +193,76 @@ namespace Core {
 					if (ImGui::SliderInt("Camera Fov", &Core::Config::Misc::CameraFov, 1, 160)) {
 						Funcs::Write<int>((uintptr_t)Core::ProcessInformations::GameModule + Core::Offsets::Game::Fov, Core::Config::Misc::CameraFov);
 					}
+					
+				} else if (CurrentTab == 3) {
+
+					ImGui::Text("Configuration");
+							
+					static int SelectedConfig = -1;
+					static std::vector<std::string> ConfigFiles;
+
+					static char ConfigNameBuffer[64] = "default";
+					ImGui::InputText("Config Name", ConfigNameBuffer, IM_ARRAYSIZE(ConfigNameBuffer));
+											
+					if (ImGui::Button("Create Config")) {
+						std::string var(ConfigNameBuffer);
+						auto it = std::find(ConfigFiles.begin(), ConfigFiles.end(), var);
+						if (it == ConfigFiles.end()) {
+							Core::ConfigManager::CreateConfig(ConfigNameBuffer);
+						} else {
+							std::cout << "[-] This config name already exist" << "\n";
+						}
+						
+					}
+					
+					ImGui::SameLine();
+							if (ImGui::Button("Load Config")) {
+						Core::ConfigManager::LoadConfig(ConfigNameBuffer);
+					}
+					
+					ImGui::SameLine();
+					
+					if (ImGui::Button("Save Config")) {
+						Core::ConfigManager::SaveConfig(ConfigNameBuffer);
+					}
+					
+					ImGui::SameLine();
+					if (ImGui::Button("Refresh Configs")) {
+						ConfigFiles = Core::ConfigManager::ListConfigFiles();
+						SelectedConfig = -1; 
+					}
+					
+					
+					if (ConfigFiles.empty()) {
+						ConfigFiles = Core::ConfigManager::ListConfigFiles();
+					}
+					
+					ImGui::Text("Available Configurations:");
+					if (ImGui::BeginListBox("##ConfigFiles", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing()))) {
+						for (int i = 0; i < ConfigFiles.size(); i++) {
+							const bool IsSelected = (SelectedConfig == i);
+							if (ImGui::Selectable(ConfigFiles[i].c_str(), IsSelected)) {
+								SelectedConfig = i;
+								
+								strcpy_s(ConfigNameBuffer, ConfigFiles[i].c_str());
+							}
+							
+							if (IsSelected) {
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndListBox();
+					}					
+					if (SelectedConfig >= 0 && SelectedConfig < ConfigFiles.size()) {
+						if (ImGui::Button("Delete Config")) {
+							std::string ConfigPath = Core::ConfigManager::GetConfigPath() + "\\" + ConfigFiles[SelectedConfig] + ".cfg";
+							DeleteFileA(ConfigPath.c_str());
+							ConfigFiles = Core::ConfigManager::ListConfigFiles();
+							SelectedConfig = -1;
+						}
+					}
+
 				}
-
-
-
 
 				ImGui::End();
 
